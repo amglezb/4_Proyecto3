@@ -1,0 +1,163 @@
+\documentclass[doublespacing,12pt,oneside]{article}
+\usepackage[top=2.5cm, left=2.5cm, right=2.5cm, bottom=2.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-nodecimaldot,es-tabla]{babel}
+\usepackage{caption, subcaption}
+\usepackage{graphicx}
+\usepackage{imakeidx}
+\usepackage{biblatex}
+\usepackage{float}
+\addbibresource{bib/protocolo.bib}
+\addbibresource{biblio.bib}
+\graphicspath{{./figs/}}
+\usepackage{setspace}
+\begin{document}
+\tableofcontents\clearpage
+
+\section{Introducción}
+\subsection{Planteamiento del Problema}
+\subsection{Motivación}
+\subsection{Objetivos}
+\section{Conceptos Aplicados}
+
+Para el desarrollo del simulador de videojuego Pokémon (Proyecto 3), se implementaron herramientas fundamentales de la Programación Orientada a Objetos para aprovechar la modularidad, reutilización de código. A continuación, se detalla la aplicación práctica de cada concepto:
+
+\subsection{Abstracción de Clases}
+La abstracción permite representar entidades complejas del mundo real como modelos de software simplificados, centrados en los atributos y comportamientos relevantes para el contexto del sistema \cite{joyanes}.
+
+\textbf{Implementación:}
+Se definieron las clases \texttt{Pokemon} y \texttt{Ataque}. La clase \texttt{Pokemon} abstrae las estadísticas vitales como \textit{Hit Points} (HP), Velocidad y Nivel, ocultando complejidad innecesaria. 
+
+\subsection{Herencia }
+La herencia es el mecanismo por el cual una clase se deriva de otra, adquiriendo sus atributos y métodos, lo que permite la reutilización de código y establece una jerarquía de tipos \cite{deitel}.
+
+\textbf{Implementación:}
+Para satisfacer el requerimiento de "ítems de curación", se diseñó una jerarquía de herencia donde la clase abstracta \texttt{Item} sirve como clase base. De ella derivan las clases concretas \texttt{Pocion} y \texttt{CuraTotal}. Esto permitió compartir el atributo \texttt{nombre} y obligar a la implementación del comportamiento específico en las subclases.
+
+\subsection{Polimorfismo}
+El polimorfismo permite que objetos de diferentes clases respondan al mismo mensaje de manera distinta, facilitando la extensibilidad del sistema \cite{joyanes}.
+
+\textbf{Implementación:}
+El método abstracto \texttt{usar(Pokemon p, CombateView view)} definido en la clase \texttt{Item} es polimórfico.
+\begin{itemize}
+    \item En la clase \texttt{Pocion}, el método incrementa la propiedad \texttt{vida}.
+    \item En la clase \texttt{CuraTotal}, el método altera la propiedad \texttt{estado} a \texttt{Estado.sano}.
+\end{itemize}
+El controlador del juego (\texttt{CombateController}) invoca este método sin necesidad de conocer el tipo exacto del objeto, simplificando la lógica del menú "Mochila".
+
+\subsection{Encapsulamiento y Arquitectura MVC}
+El encapsulamiento oculta los detalles internos de implementación y protege la integridad de los datos, exponiendo solo una interfaz pública segura \cite{sommerville}.
+
+\textbf{Implementación:}
+Se adoptó el patrón de arquitectura Modelo-Vista-Controlador (MVC):
+\begin{itemize}
+    \item \textbf{Modelo:} Clases de datos como \texttt{Pokemon} y \texttt{TablaTipos}.
+    \item \textbf{Vista:} La interfaz \texttt{CombateView} encapsula todas las operaciones de entrada/salida (I/O), separando la lógica de presentación de la lógica de negocio.
+    \item \textbf{Controlador:} La clase \texttt{CombateController} gestiona el flujo de la batalla.
+\end{itemize}
+
+\subsection{Miembros Estáticos (Static)}
+Los miembros estáticos pertenecen a la clase en lugar de a una instancia particular, permitiendo el acceso a utilidades y constantes compartidas \cite{deitel}.
+
+\textbf{Implementación:}
+La clase \texttt{TablaTipos} utiliza un mapa estático (\texttt{efectividad}) y un método estático (\texttt{obtenerMultiplicador}) para calcular las debilidades y resistencias (x2.0, x0.5, x0.0). Esto permite consultar la tabla de tipos globalmente sin instanciar objetos, optimizando el uso de memoria según la Figura 1 del planteamiento.
+
+
+\section{Desarrollo}
+
+
+\subsection{Análisis del Código}
+
+\textbf{Encapsulación:}  
+En el programa, la encapsulación se refleja en la manera en que cada componente administra su propia lógica interna sin exponer detalles innecesarios. La función \texttt{main} únicamente define el flujo general, mientras que el manejo del tiempo de espera y la ejecución diferida se encuentra dentro de \texttt{Future.delayed}. Esta separación permite mantener un control adecuado sobre las partes del programa y favorece la organización del código, evitando dependencias excesivas entre módulos.
+
+\textbf{Abstracción:}  
+La abstracción se aplica mediante el uso de estructuras como \texttt{Future} y \texttt{Duration}, las cuales ocultan la complejidad del manejo del \textit{Event Loop}. El programador sólo debe especificar qué tarea desea ejecutar y en cuánto tiempo, sin preocuparse por los detalles internos del procesamiento asíncrono. Esto permite trabajar con procesos complejos mediante interfaces simples y comprensibles.
+
+\textbf{Composición:}  
+El programa implementa composición al integrar objetos de apoyo dentro del flujo principal sin necesidad de recurrir a herencia. Componentes como \texttt{Duration(seconds: 2)} y \texttt{Future.delayed} se utilizan directamente como partes funcionales del programa. Esta técnica favorece la reutilización de componentes ya existentes y permite construir comportamientos más completos sin duplicar código.
+
+\textbf{Polimorfismo:}  
+El polimorfismo aparece cuando se pasa una función callback dentro de \texttt{Future.delayed}. Este callback puede representar distintos comportamientos, lo que permite que la misma estructura ejecute acciones diferentes según la función proporcionada. Gracias a esto, el diseño se vuelve flexible y adaptable sin modificar la estructura principal.
+
+\textbf{Responsabilidad Única:}  
+Cada elemento del programa cumple una única responsabilidad. La función \texttt{main} se encarga del flujo general, \texttt{Future.delayed} administra la tarea programada y el \textit{Event Loop} controla la ejecución en segundo plano. Esta distribución clara evita que un módulo realice tareas adicionales y facilita la lectura y mantenimiento del código.
+
+\textbf{Arquitectura MVC:}  
+Aunque el programa es corto, en su estructura puede identificarse una organización compatible con el patrón \textit{Modelo–Vista–Controlador} (MVC). La función \texttt{main} actúa como el \textit{Controlador}, ya que coordina el flujo del programa e indica cuándo deben ejecutarse las tareas. El manejo del tiempo mediante \texttt{Future} y \texttt{Duration} funciona como el \textit{Modelo}, puesto que encapsula la lógica interna relacionada con los procesos asíncronos. Finalmente, las salidas impresas con \texttt{print} representan la \textit{Vista}, encargada de mostrar la información al usuario. Esta separación implícita de responsabilidades contribuye a un diseño organizado, modular y fácil de extender.
+
+
+\subsection{Diagramas UML}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{capturas/Diagramaestatico.png}
+    \caption{Diagrama estatico de clases.}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{capturas/Diagrama dinámico de secuencia.png}
+    \caption{Diagrama dinamico de secuencia.}
+\end{figure}
+
+
+\section{Resultados relevantes}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Resultados/1.png}
+    \caption{Menú al iniciar la aplicación (Status de batalla inicial)}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Resultados/2.png}
+    \caption{Menú de selección de ataque}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Resultados/3.png}
+    \caption{Status de la batalla después de realizar un movimiento (ataque)}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Resultados/4.png}
+    \caption{Menú de selección de objetos en mochila}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Resultados/5.png}
+    \caption{Status de batalla después de usar poción}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Resultados/6.png}
+    \caption{Status de mochila después de usar un objeto (consumibles)}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Resultados/7.png}
+    \caption{Último ataque realizado por el usuario, pokemón rival derrotado}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Resultados/8.png}
+    \caption{Status mostrado en caso de perder la batalla}
+\end{figure}
+
+\section{Conclusiones}
+ 
+El desarrollo de este código permitió consolidar los conocimientos fundamentales de la programación orientada a objetos, aplicando principios como la encapsulación, la abstracción, la composición y el polimorfismo dentro de un ejemplo práctico y funcional. Asimismo, el análisis de su estructura facilitó la comprensión de cómo estos conceptos se integran naturalmente en el manejo de tareas asíncronas en Dart. De igual manera, el estudio del programa posibilitó relacionarlo con los fundamentos del modelado mediante diagramas UML, ya que fue posible identificar responsabilidades, flujos de interacción y la separación implícita en capas compatible con la arquitectura MVC. En conjunto, este ejercicio no sólo reforzó aspectos teóricos de la POO y de los modelos de diseño, sino que también permitió comprender de forma más profunda el comportamiento interno del código, su organización y los principios que lo hacen claro, modular y escalable.
+
+
+\clearpage
+
+\printbibliography
+
+\end{document}
