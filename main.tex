@@ -16,10 +16,33 @@
 \tableofcontents\clearpage
 
 \section{Introducción}
+
 \subsection{Planteamiento del Problema}
+El desarrollo de software orientado a objetos requiere la implementación de modelos que no solo representen entidades estáticas, sino que también gestionen interacciones complejas y flujos de estados dinámicos. Para este proyecto, se plantea el desafío de replicar la lógica subyacente de un sistema de batalla por turnos, basado en los videojuegos de Pokémon.
+
+El problema central consiste en diseñar una arquitectura de software capaz de gestionar múltiples variables simultáneas: el cálculo de daño basado en una matriz de tipos elementales (debilidades y resistencias), la administración de turnos basada en estadísticas de velocidad, y la gestión de inventarios y estados alterados del personaje. Es necesario desarrollar una solución modular bajo el patrón Modelo-Vista-Controlador (MVC) que permita desacoplar la lógica del juego de la interfaz de usuario, garantizando un sistema robusto, extensible y mantenible.
+
 \subsection{Motivación}
+La simulación de sistemas complejos es una de las aplicaciones prácticas más efectivas para consolidar los conocimientos de programación orientada a objetos y estructuras de datos. Este proyecto surge de la necesidad de aplicar conceptos teóricos vistos en el curso —como polimorfismo, abstracción, herencia y manejo de colecciones— en un escenario práctico y reconocible.
+
+Un simulador de batallas no es trivial; es un escenario ideal para enfrentar problemas comunes en el desarrollo profesional, tales como la implementación de patrones de diseño (como \textit{Strategy} para los ítems) y la optimización de algoritmos de búsqueda (para la tabla de tipos). Además, la motivación se extiende a la creación de una experiencia de usuario interactiva en consola, superando la ejecución lineal de scripts simples para crear una aplicación que responde dinámicamente a las decisiones del usuario.
+
 \subsection{Objetivos}
-\section{Conceptos Aplicados}
+
+\textbf{Objetivo General:} \\
+Desarrollar una aplicación de consola en lenguaje Dart que simule fielmente un combate Pokémon, implementando una arquitectura Modelo-Vista-Controlador (MVC) para gestionar la lógica de turnos, el cálculo de daño elemental y la interacción con el usuario.
+
+\vspace{0.3cm}
+\textbf{Objetivos Específicos:}
+\begin{itemize}
+    \item \textbf{Implementar una matriz de efectividad de tipos:} Desarrollar una estructura de datos eficiente que permita calcular multiplicadores de daño (x2, x0.5, x0) para los 18 tipos elementales, evitando el uso excesivo de condicionales.
+    \item \textbf{Diseñar un sistema de turnos dinámico:} Programar un algoritmo de control de flujo que determine el orden de actuación basándose en la velocidad de las entidades y que se adapte a modificaciones en tiempo real (como estados de parálisis).
+    \item \textbf{Desarrollar un modelo flexible y escalable:} Hacer uso de herencia para permitir la instanciación genérica de Pokémon y la gestión de estados alterados (veneno, quemadura, congelamiento).
+    \item \textbf{Integrar interactividad y gestión de recursos:} Habilitar un menú interactivo que permita al usuario elegir estratégicamente entre atacar o utilizar objetos del inventario para recuperar salud o curar estados.
+\end{itemize}
+
+
+\section{Marco Teórico (Conceptos):}
 
 Para el desarrollo del simulador de videojuego Pokémon (Proyecto 3), se implementaron herramientas fundamentales de la Programación Orientada a Objetos para aprovechar la modularidad, reutilización de código. A continuación, se detalla la aplicación práctica de cada concepto:
 
@@ -65,9 +88,47 @@ La clase \texttt{TablaTipos} utiliza un mapa estático (\texttt{efectividad}) y 
 
 
 \section{Desarrollo}
-
-
 \subsection{Explicación del Código}
+\subsubsection*{Paso 1: Matriz de Efectividad}
+
+\textbf{Requerimiento:} El sistema requiere implementar una lógica de batalla fiel a la "Figura 1" de los requerimientos, donde cada tipo elemental tiene debilidades (x2), resistencias (x0.5) e inmunidades (x0). El código original utilizaba condicionales anidados (\texttt{if/else}) que solo cubrían un caso específico (Fuego vs Hierba), lo cual no era adecuado para manejar los 18 tipos existentes de forma ordenada.
+
+\vspace{0.3cm}
+
+\textbf{Implementación realizada:} Se implementó la clase \texttt{TablaTipos} para manejar todas las combinaciones de daño. Se utilizó una estructura de datos tipo mapa (\texttt{Map}) que funciona como una tabla de doble entrada. Esto permite buscar el multiplicador de daño accediendo directamente mediante el tipo de ataque y el tipo de defensor. De esta forma, el programa obtiene el resultado (2.0, 0.5, etc.) de manera directa y rápida sin necesidad de escribir múltiples condiciones lógicas, facilitando agregar más tipos si fuera necesario.
+
+\subsubsection*{Paso 2: Modelo}
+
+\textbf{Requerimiento:} Se requería que la aplicación soportara múltiples instancias de Pokémon de diferentes tipos sin tener que crear una clase nueva por cada uno (como \texttt{class PokemonFuego}). Además, como puntos extra, se solicitó la inclusión de mecánicas de estados alterados (Quemado, Paralizado, Congelado, Envenenado) que afectaran la vida o la capacidad de movimiento del Pokémon.
+
+\vspace{0.3cm}
+
+\textbf{Implementación realizada:} Se modificó la clase \texttt{Pokemon} para que sea más general y flexible. Ahora recibe sus propiedades (tipo, movimientos, vida) directamente al momento de crearse, eliminando la necesidad de crear subclases específicas. Para manejar los estados, se implementó un listado fijo (\texttt{enum Estado}) que evita errores de texto. Se agregaron funciones dentro de la clase: \texttt{puedeMoverse()}, que verifica si el Pokémon puede atacar antes de su turno, y \texttt{aplicarEfectoDeEstado()}, que calcula y resta la vida por daño continuo al finalizar el turno.
+
+\subsubsection*{Paso 3: Menú}
+
+\textbf{Requerimiento:} Según la "Figura 2", el simulador no debía ejecutarse automáticamente hasta el final, sino que debía pausar la ejecución en cada turno para permitir al usuario tomar decisiones. El sistema debía presentar un menú claro con las opciones "LUCHA" y "MOCHILA", y responder a lo que escriba el usuario para navegar por estas opciones.
+
+\vspace{0.3cm}
+
+\textbf{Implementación realizada:} Se integró la librería \texttt{dart:io} para permitir que el programa lea lo que el usuario escribe en la consola. Se modificó el ciclo principal del controlador para que funcione paso a paso. Ahora, el código muestra el menú en pantalla, detiene la ejecución esperando una respuesta, verifica si se escribió "1" o "2", y ejecuta la acción correspondiente (mostrar la lista de ataques o abrir el inventario) según la elección del jugador.
+
+\subsubsection*{Paso 4: Inventario}
+
+\textbf{Requerimiento:} Como parte de los puntos extra, el sistema debía permitir al usuario utilizar objetos durante la batalla para recuperar puntos de salud o curar estados alterados. Esto implicaba que "Atacar" no fuera la única opción y que usar un objeto gastara el turno del jugador sin hacer daño al rival.
+
+\vspace{0.3cm}
+
+\textbf{Implementación realizada:} Se implementó una clase base llamada \texttt{Item} para definir cómo deben comportarse los objetos. A partir de ella se crearon las clases \texttt{Pocion} (que suma vida hasta un tope máximo) y \texttt{CuraTotal} (que limpia el estado del Pokémon). El controlador ahora maneja una lista de estos objetos y, cuando el usuario elige uno, simplemente ejecuta su función de uso y descuenta el objeto del inventario.
+
+\subsubsection*{Paso 5: Lógica de Turnos}
+
+\textbf{Requerimiento:} El sistema de batalla debía determinar el orden de actuación basándose en la velocidad de los Pokémon: el más rápido ataca primero. Sin embargo, este cálculo debía considerar cambios durante la batalla, como la reducción de velocidad por estar "Paralizado", y debía manejar el caso donde el jugador usa un objeto (cediendo el turno al rival).
+
+\vspace{0.3cm}
+
+\textbf{Implementación realizada:} Se implementó una lógica que compara las velocidades de ambos Pokémon en cada turno. El programa verifica la velocidad actual (considerando si el estado la reduce) y decide el orden. Si el jugador ataca, se compara su velocidad con la del rival; si el jugador usa un ítem, se programó para que el rival ataque automáticamente primero. También se agregaron verificaciones para asegurar que, si un Pokémon pierde toda su vida tras el primer ataque, el turno termine inmediatamente.
+
 
 \textbf{Encapsulación:}  
 En el programa, la encapsulación se refleja en la manera en que cada componente administra su propia lógica interna sin exponer detalles innecesarios. La función \texttt{main} únicamente define el flujo general, mientras que el manejo del tiempo de espera y la ejecución diferida se encuentra dentro de \texttt{Future.delayed}. Esta separación permite mantener un control adecuado sobre las partes del programa y favorece la organización del código, evitando dependencias excesivas entre módulos.
