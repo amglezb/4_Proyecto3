@@ -86,49 +86,49 @@ Los miembros estáticos pertenecen a la clase en lugar de a una instancia partic
 \textbf{Implementación:}
 La clase \texttt{TablaTipos} utiliza un mapa estático (\texttt{efectividad}) y un método estático (\texttt{obtenerMultiplicador}) para calcular las debilidades y resistencias (x2.0, x0.5, x0.0). Esto permite consultar la tabla de tipos globalmente sin instanciar objetos, optimizando el uso de memoria según la Figura 1 del planteamiento.
 
-
+\clearpage
 \section{Desarrollo}
-\subsection{Explicación del Código}
-\subsubsection*{Paso 1: Matriz de Efectividad}
+\subsection{Desarrollo en Serie de Pasos}
+\subsubsection*{1. \textbf{Definición de Tipos y Efectividad}}
+Se creó una estructura de datos estática ($\texttt{TablaTipos}$) para implementar la \textbf{matriz completa de efectividad} entre todos los tipos. Esto permite al sistema consultar dinámicamente el multiplicador de daño (ej., $0.5$, $1.0$, $2.0$) para cualquier combinación de tipo de ataque y tipo de defensor.
 
-\textbf{Requerimiento:} El sistema requiere implementar una lógica de batalla fiel a la "Figura 1" de los requerimientos, donde cada tipo elemental tiene debilidades (x2), resistencias (x0.5) e inmunidades (x0). El código original utilizaba condicionales anidados (\texttt{if/else}) que solo cubrían un caso específico (Fuego vs Hierba), lo cual no era adecuado para manejar los 18 tipos existentes de forma ordenada.
+\subsubsection*{2. \textbf{Expansión del Modelo Ataque}}
+La clase $\texttt{Ataque}$ fue implementada para incluir una \textbf{potencia} base y un campo opcional ($\texttt{efectoEstado}$) que define el problema de estado que puede aplicar (ej., Quemado o Paralizado) con cierta probabilidad.
 
-\vspace{0.3cm}
+\subsubsection*{3. \textbf{Implementación de Estados Alterados}}
+Se definió una enumeración ($\texttt{Estado}$) para categorizar los problemas de estado. Se implementó la función $\texttt{aplicarEfectoDeEstado()}$ en la clase $\texttt{Pokemon}$ para calcular y restar el \textbf{daño pasivo por estado} (proporcional a la vida máxima) al final de cada turno.
 
-\textbf{Implementación realizada:} Se implementó la clase \texttt{TablaTipos} para manejar todas las combinaciones de daño. Se utilizó una estructura de datos tipo mapa (\texttt{Map}) que funciona como una tabla de doble entrada. Esto permite buscar el multiplicador de daño accediendo directamente mediante el tipo de ataque y el tipo de defensor. De esta forma, el programa obtiene el resultado (2.0, 0.5, etc.) de manera directa y rápida sin necesidad de escribir múltiples condiciones lógicas, facilitando agregar más tipos si fuera necesario.
+\subsubsection*{4. \textbf{Desarrollo del Sistema de Items}}
+Se implementó la clase abstracta $\texttt{Item}$ con su método $\texttt{usar()}$. Se crearon clases concretas ($\texttt{Poción}$, $\texttt{MaxPoción}$, $\texttt{CuraTotal}$) que extienden $\texttt{Item}$ e implementan la lógica específica para restaurar vida o eliminar estados.
 
-\subsubsection*{Paso 2: Modelo}
+\subsubsection*{5. \textbf{Estructura de la Aplicación y Temas}}
+Se definió la estructura básica de Flutter ($\texttt{MaterialApp}$) y se configuró el tema con colores oscuros y esquemas de color específicos para la aplicación.
 
-\textbf{Requerimiento:} Se requería que la aplicación soportara múltiples instancias de Pokémon de diferentes tipos sin tener que crear una clase nueva por cada uno (como \texttt{class PokemonFuego}). Además, como puntos extra, se solicitó la inclusión de mecánicas de estados alterados (Quemado, Paralizado, Congelado, Envenenado) que afectaran la vida o la capacidad de movimiento del Pokémon.
+\subsubsection*{6. \textbf{Gestión de Fases del Combate}}
+Se implementó la enumeración $\texttt{FaseTurno}$ para controlar el estado de la interfaz de usuario: $\texttt{menuPrincipal}$, $\texttt{seleccionAtaque}$, $\texttt{seleccionMochila}$, $\texttt{animacion}$, $\texttt{finJuego}$.
 
-\vspace{0.3cm}
+\subsubsection*{7. \textbf{Renderizado del Campo de Batalla y Sprites}}
+Se utilizó un $\texttt{Stack}$ de *widgets* para posicionar los elementos en capas: el fondo degradado y los *widgets* de imagen que cargan los \textbf{sprites animados} del Pokémon (jugador en la parte trasera, rival en el frente) utilizando las URL dinámicas basadas en su ID. 
 
-\textbf{Implementación realizada:} Se modificó la clase \texttt{Pokemon} para que sea más general y flexible. Ahora recibe sus propiedades (tipo, movimientos, vida) directamente al momento de crearse, eliminando la necesidad de crear subclases específicas. Para manejar los estados, se implementó un listado fijo (\texttt{enum Estado}) que evita errores de texto. Se agregaron funciones dentro de la clase: \texttt{puedeMoverse()}, que verifica si el Pokémon puede atacar antes de su turno, y \texttt{aplicarEfectoDeEstado()}, que calcula y resta la vida por daño continuo al finalizar el turno.
+\subsubsection*{8. \textbf{Implementación del HUD}}
+Se creó un *widget* modular ($\texttt{\_buildPokemonHUD}$) que renderiza el nombre, nivel, el indicador de \textbf{estado alterado} y, crucialmente, la \textbf{barra de vida} con su color dinámico (verde, naranja, rojo).
 
-\subsubsection*{Paso 3: Menú}
+\subsubsection*{9. \textbf{Panel de Logs y Control}}
+Se implementó un área de texto con $\texttt{ListView.builder}$ para mostrar los mensajes de combate. Se añadió la lógica de *auto-scroll* para que el $\texttt{log}$ siempre muestre el último mensaje. Se implementaron los botones interactivos para cada fase.
 
-\textbf{Requerimiento:} Según la "Figura 2", el simulador no debía ejecutarse automáticamente hasta el final, sino que debía pausar la ejecución en cada turno para permitir al usuario tomar decisiones. El sistema debía presentar un menú claro con las opciones "LUCHA" y "MOCHILA", y responder a lo que escriba el usuario para navegar por estas opciones.
+\subsubsection*{10. \textbf{Lógica de Turno Asíncrono}}
+Todas las funciones clave del combate ($\texttt{ejecutarAtaqueJugador}$, $\texttt{turnoRival}$) se definieron como \textbf{asíncronas} ($\texttt{async/await}$). Esto permite la introducción de pausas ($\texttt{Future.delayed}$) para simular el tiempo que toma una acción antes de continuar.
 
-\vspace{0.3cm}
+\subsubsection*{11. \textbf{Determinación de Prioridad}}
+Se implementó la lógica de quién ataca primero, comparando la $\texttt{velocidad}$ de los Pokémon. Se incluyó la verificación de la \textbf{parálisis}, que introduce una probabilidad de que el Pokémon paralizado pierda su turno, afectando la prioridad.
 
-\textbf{Implementación realizada:} Se integró la librería \texttt{dart:io} para permitir que el programa lea lo que el usuario escribe en la consola. Se modificó el ciclo principal del controlador para que funcione paso a paso. Ahora, el código muestra el menú en pantalla, detiene la ejecución esperando una respuesta, verifica si se escribió "1" o "2", y ejecuta la acción correspondiente (mostrar la lista de ataques o abrir el inventario) según la elección del jugador.
+\subsubsection*{12. \textbf{Cálculo de Daño Avanzado}}
+El método $\texttt{procesarAtaque}$ calcula el daño final aplicando: la \textbf{Potencia} del ataque, el \textbf{Multiplicador de Efectividad}, el \textbf{Bonus STAB} ($\times 1.5$) si el ataque es del mismo tipo, y un \textbf{Factor de Variación Aleatoria} ($0.85 \text{ a } 1.00$).
 
-\subsubsection*{Paso 4: Inventario}
+\subsubsection*{13. \textbf{Transiciones de Fase y Fin de Turno}}
+Se implementó el cambio de estado ($\texttt{setState}$) al inicio y final de cada acción. La función $\texttt{finalizarTurno}$ verifica el daño por estado pasivo y comprueba si la vida de algún Pokémon ha llegado a cero (pasando a $\texttt{finJuego}$) o si ambos siguen en pie, regresando a la fase $\texttt{menuPrincipal}$.
 
-\textbf{Requerimiento:} Como parte de los puntos extra, el sistema debía permitir al usuario utilizar objetos durante la batalla para recuperar puntos de salud o curar estados alterados. Esto implicaba que "Atacar" no fuera la única opción y que usar un objeto gastara el turno del jugador sin hacer daño al rival.
-
-\vspace{0.3cm}
-
-\textbf{Implementación realizada:} Se implementó una clase base llamada \texttt{Item} para definir cómo deben comportarse los objetos. A partir de ella se crearon las clases \texttt{Pocion} (que suma vida hasta un tope máximo) y \texttt{CuraTotal} (que limpia el estado del Pokémon). El controlador ahora maneja una lista de estos objetos y, cuando el usuario elige uno, simplemente ejecuta su función de uso y descuenta el objeto del inventario.
-
-\subsubsection*{Paso 5: Lógica de Turnos}
-
-\textbf{Requerimiento:} El sistema de batalla debía determinar el orden de actuación basándose en la velocidad de los Pokémon: el más rápido ataca primero. Sin embargo, este cálculo debía considerar cambios durante la batalla, como la reducción de velocidad por estar "Paralizado", y debía manejar el caso donde el jugador usa un objeto (cediendo el turno al rival).
-
-\vspace{0.3cm}
-
-\textbf{Implementación realizada:} Se implementó una lógica que compara las velocidades de ambos Pokémon en cada turno. El programa verifica la velocidad actual (considerando si el estado la reduce) y decide el orden. Si el jugador ataca, se compara su velocidad con la del rival; si el jugador usa un ítem, se programó para que el rival ataque automáticamente primero. También se agregaron verificaciones para asegurar que, si un Pokémon pierde toda su vida tras el primer ataque, el turno termine inmediatamente.
-
+\subsection{Conceptos en la Aplicación}
 
 \textbf{Encapsulación:}  
 En el programa, la encapsulación se refleja en la manera en que cada componente administra su propia lógica interna sin exponer detalles innecesarios. La función \texttt{main} únicamente define el flujo general, mientras que el manejo del tiempo de espera y la ejecución diferida se encuentra dentro de \texttt{Future.delayed}. Esta separación permite mantener un control adecuado sobre las partes del programa y favorece la organización del código, evitando dependencias excesivas entre módulos.
@@ -166,50 +166,50 @@ Aunque el programa es corto, en su estructura puede identificarse una organizaci
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{Resultados/1.png}
+    \includegraphics[width=0.4\textwidth]{Resultados/Inicio.png}
     \caption{Menú al iniciar la aplicación (Status de batalla inicial)}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{Resultados/2.png}
+    \includegraphics[width=0.4\textwidth]{Resultados/Menu-Ataque.png}
     \caption{Menú de selección de ataque}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{Resultados/3.png}
+    \includegraphics[width=0.4\textwidth]{Resultados/Status-Ataque.png}
     \caption{Status de la batalla después de realizar un movimiento (ataque)}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{Resultados/4.png}
+    \includegraphics[width=0.4\textwidth]{Resultados/Status-Contraataque.png}
+    \caption{Status del contra-ataque del enemigo}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Resultados/Menú-Mochila.png}
     \caption{Menú de selección de objetos en mochila}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{Resultados/5.png}
+    \includegraphics[width=0.4\textwidth]{Resultados/Status-UsoPocion.png}
     \caption{Status de batalla después de usar poción}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{Resultados/6.png}
-    \caption{Status de mochila después de usar un objeto (consumibles)}
+    \includegraphics[width=0.4\textwidth]{Resultados/Status-Efecto.png}
+    \caption{Status de efecto sobre nuestro pókemon (Congelamiento)}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{Resultados/7.png}
-    \caption{Último ataque realizado por el usuario, pokemón rival derrotado}
-\end{figure}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Resultados/8.png}
-    \caption{Status mostrado en caso de perder la batalla}
+    \includegraphics[width=0.4\textwidth]{Resultados/Status-Victoria.png}
+    \caption{Pókemon rival derrotado}
 \end{figure}
 
 \section{Conclusiones}
